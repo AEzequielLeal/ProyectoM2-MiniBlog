@@ -11,6 +11,13 @@ function errorHandler(error, request, response, next) {
     error.message = "El email ya está registrado.";
 }
 
+if (
+    error.code === "23503" &&
+    error.constraint === "posts_author_id_fkey"
+) {
+    error.status = 400;
+    error.message = "El autor indicado no existe.";
+}
     const status = error.status || 500;
     let message = error.message;
 
