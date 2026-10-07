@@ -3,10 +3,18 @@ const pool = require("./db/pool");
 const errorHandler = require("./middlewares/errorHandler");
 const authorsRouter = require("./routes/authorsRoutes");
 const postsRouter = require("./routes/postsRoutes");
+const swaggerUi = require("swagger-ui-express");
+const openapi = require("../openapi.json");
 
 const app = express();
 
 app.use(express.json());
+
+app.get("/openapi.json", (request, response) => {
+    response.json(openapi);
+});
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
 
 app.use("/authors", authorsRouter);
 

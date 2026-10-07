@@ -1,0 +1,848 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MiniBlog API",
+    "version": "1.0.0",
+    "description": "API REST de autores y publicaciones desarrollada con Node.js, Express y PostgreSQL. Un autor puede tener muchos posts; cada post tiene un único autor. Consultas SQL parametrizadas, validación de entradas y manejo centralizado de errores. No incluye autenticación."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Servidor actual (local o Railway)"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Desarrollo local, puerto predeterminado"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Autores",
+      "description": "CRUD de autores."
+    },
+    {
+      "name": "Publicaciones",
+      "description": "CRUD de posts y consulta por autor."
+    },
+    {
+      "name": "Estado",
+      "description": "Estado del servidor y de su conexión a la base."
+    }
+  ],
+  "paths": {
+    "/authors": {
+      "get": {
+        "tags": [
+          "Autores"
+        ],
+        "operationId": "listAuthors",
+        "summary": "Listar autores",
+        "responses": {
+          "200": {
+            "description": "Lista de autores ordenada por ID. Puede estar vacía.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Author"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Ana Garcia",
+                    "email": "ana@example.com",
+                    "bio": "Desarrolladora full-stack.",
+                    "created_at": "2026-10-06T18:36:16.523Z"
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Autores"
+        ],
+        "operationId": "createAuthor",
+        "summary": "Crear un autor",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Autor creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Author"
+                },
+                "example": {
+                  "id": 1,
+                  "name": "Ana Garcia",
+                  "email": "ana@example.com",
+                  "bio": "Desarrolladora full-stack.",
+                  "created_at": "2026-10-06T18:36:16.523Z"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "Ruta del autor creado.",
+                "schema": {
+                  "type": "string",
+                  "example": "/authors/1"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/authors/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID entero positivo, con un máximo de 2147483647.",
+          "schema": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "example": 1
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Autores"
+        ],
+        "operationId": "getAuthor",
+        "summary": "Obtener un autor",
+        "responses": {
+          "200": {
+            "description": "Autor encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Author"
+                },
+                "example": {
+                  "id": 1,
+                  "name": "Ana Garcia",
+                  "email": "ana@example.com",
+                  "bio": "Desarrolladora full-stack.",
+                  "created_at": "2026-10-06T18:36:16.523Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Autores"
+        ],
+        "operationId": "updateAuthor",
+        "summary": "Actualizar un autor",
+        "description": "Reemplaza name, email y bio. name y email son obligatorios; si se omite bio, queda null. Conserva id y created_at.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autor actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Author"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Autores"
+        ],
+        "operationId": "deleteAuthor",
+        "summary": "Eliminar un autor",
+        "description": "Elimina al autor y todos sus posts mediante ON DELETE CASCADE.",
+        "responses": {
+          "204": {
+            "description": "Autor eliminado. Respuesta sin cuerpo."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/posts": {
+      "get": {
+        "tags": [
+          "Publicaciones"
+        ],
+        "operationId": "listPosts",
+        "summary": "Listar publicaciones",
+        "responses": {
+          "200": {
+            "description": "Lista de posts ordenada por ID. Puede estar vacía.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Post"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "author_id": 1,
+                    "title": "Introduccion a Node.js",
+                    "content": "Node.js permite ejecutar JavaScript en el servidor.",
+                    "published": true,
+                    "created_at": "2026-10-06T18:36:16.523Z"
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Publicaciones"
+        ],
+        "operationId": "createPost",
+        "summary": "Crear una publicación",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Publicación creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                },
+                "example": {
+                  "id": 1,
+                  "author_id": 1,
+                  "title": "Introduccion a Node.js",
+                  "content": "Node.js permite ejecutar JavaScript en el servidor.",
+                  "published": true,
+                  "created_at": "2026-10-06T18:36:16.523Z"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "Ruta de la publicación creada.",
+                "schema": {
+                  "type": "string",
+                  "example": "/posts/1"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/posts/author/{authorId}": {
+      "parameters": [
+        {
+          "name": "authorId",
+          "in": "path",
+          "required": true,
+          "description": "ID entero positivo, con un máximo de 2147483647.",
+          "schema": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "example": 1
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Publicaciones"
+        ],
+        "operationId": "listPostsByAuthor",
+        "summary": "Listar posts con los datos de su autor",
+        "description": "Devuelve 404 si el autor no existe. Los datos del autor se incluyen dentro de cada post, bajo la propiedad author.",
+        "responses": {
+          "200": {
+            "description": "Array de posts. Cada post incluye un objeto author. Si el autor existe y no tiene posts, devuelve [].",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PostWithAuthor"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "author_id": 1,
+                    "title": "Introduccion a Node.js",
+                    "content": "Node.js permite ejecutar JavaScript en el servidor.",
+                    "published": true,
+                    "created_at": "2026-10-06T18:36:16.523Z",
+                    "author": {
+                      "id": 1,
+                      "name": "Ana Garcia",
+                      "email": "ana@example.com",
+                      "bio": "Desarrolladora full-stack.",
+                      "created_at": "2026-10-06T18:36:16.523Z"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/posts/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID entero positivo, con un máximo de 2147483647.",
+          "schema": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "example": 1
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Publicaciones"
+        ],
+        "operationId": "getPost",
+        "summary": "Obtener una publicación",
+        "responses": {
+          "200": {
+            "description": "Publicación encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                },
+                "example": {
+                  "id": 1,
+                  "author_id": 1,
+                  "title": "Introduccion a Node.js",
+                  "content": "Node.js permite ejecutar JavaScript en el servidor.",
+                  "published": true,
+                  "created_at": "2026-10-06T18:36:16.523Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Publicaciones"
+        ],
+        "operationId": "updatePost",
+        "summary": "Actualizar una publicación",
+        "description": "Reemplaza title, content, author_id y published. title, content y author_id son obligatorios; si se omite published, queda false. Conserva id y created_at.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Publicación actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Publicaciones"
+        ],
+        "operationId": "deletePost",
+        "summary": "Eliminar una publicación",
+        "responses": {
+          "204": {
+            "description": "Publicación eliminada. Respuesta sin cuerpo."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Estado"
+        ],
+        "operationId": "getHealth",
+        "summary": "Verificar servidor y conexión a PostgreSQL",
+        "responses": {
+          "200": {
+            "description": "Servidor operativo y consulta a PostgreSQL exitosa.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                },
+                "example": {
+                  "status": "ok",
+                  "database": "connected"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthorInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "description": "Se recortan los espacios de name, email y bio. El email se guarda en minúsculas. Los límites se aplican después de normalizar el texto. Los campos desconocidos se ignoran.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S",
+            "example": "Ana Garcia"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 150,
+            "description": "Obligatorio y único.",
+            "example": "ana@example.com"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "description": "Si se omite, se guarda null.",
+            "example": "Desarrolladora full-stack."
+          }
+        }
+      },
+      "Author": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "bio",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "example": 1,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S",
+            "example": "Ana Garcia"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 150,
+            "description": "Obligatorio y único.",
+            "example": "ana@example.com"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "example": "Desarrolladora full-stack."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2026-10-06T18:36:16.523Z"
+          }
+        },
+        "example": {
+          "id": 1,
+          "name": "Ana Garcia",
+          "email": "ana@example.com",
+          "bio": "Desarrolladora full-stack.",
+          "created_at": "2026-10-06T18:36:16.523Z"
+        }
+      },
+      "PostInput": {
+        "type": "object",
+        "required": [
+          "title",
+          "content",
+          "author_id"
+        ],
+        "description": "Se recortan los espacios de title y content antes de validar. author_id debe ser un número entero JSON correspondiente a un autor existente. Los campos desconocidos se ignoran.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "\\S",
+            "example": "Introduccion a Node.js"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "example": "Node.js permite ejecutar JavaScript en el servidor."
+          },
+          "author_id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "example": 1,
+            "description": "ID de un autor existente. No admite strings ni null."
+          },
+          "published": {
+            "type": "boolean",
+            "default": false,
+            "description": "Si se omite, se guarda false. No admite strings ni null.",
+            "example": true
+          }
+        }
+      },
+      "Post": {
+        "type": "object",
+        "required": [
+          "id",
+          "author_id",
+          "title",
+          "content",
+          "published",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "example": 1,
+            "readOnly": true
+          },
+          "author_id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "\\S",
+            "example": "Introduccion a Node.js"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "example": "Node.js permite ejecutar JavaScript en el servidor."
+          },
+          "published": {
+            "type": "boolean",
+            "example": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2026-10-06T18:36:16.523Z"
+          }
+        },
+        "example": {
+          "id": 1,
+          "author_id": 1,
+          "title": "Introduccion a Node.js",
+          "content": "Node.js permite ejecutar JavaScript en el servidor.",
+          "published": true,
+          "created_at": "2026-10-06T18:36:16.523Z"
+        }
+      },
+      "PostWithAuthor": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Post"
+          },
+          {
+            "type": "object",
+            "required": [
+              "author"
+            ],
+            "properties": {
+              "author": {
+                "$ref": "#/components/schemas/Author"
+              }
+            }
+          }
+        ],
+        "example": {
+          "id": 1,
+          "author_id": 1,
+          "title": "Introduccion a Node.js",
+          "content": "Node.js permite ejecutar JavaScript en el servidor.",
+          "published": true,
+          "created_at": "2026-10-06T18:36:16.523Z",
+          "author": {
+            "id": 1,
+            "name": "Ana Garcia",
+            "email": "ana@example.com",
+            "bio": "Desarrolladora full-stack.",
+            "created_at": "2026-10-06T18:36:16.523Z"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Publicación no encontrada."
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "required": [
+          "status",
+          "database"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "connected"
+            ]
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Datos inválidos, JSON mal formado, ID inválido, email duplicado o autor referenciado inexistente.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "invalidId": {
+                "value": {
+                  "error": "El id debe ser un entero positivo válido."
+                }
+              },
+              "duplicateEmail": {
+                "value": {
+                  "error": "El email ya está registrado."
+                }
+              },
+              "missingAuthor": {
+                "value": {
+                  "error": "El autor indicado no existe."
+                }
+              },
+              "invalidJson": {
+                "value": {
+                  "error": "El cuerpo debe ser JSON válido."
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Autor o publicación inexistente.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "author": {
+                "value": {
+                  "error": "Autor no encontrado."
+                }
+              },
+              "post": {
+                "value": {
+                  "error": "Publicación no encontrada."
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Error inesperado. La respuesta no expone detalles internos.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "Error interno del servidor."
+            }
+          }
+        }
+      }
+    }
+  }
+}
