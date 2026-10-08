@@ -341,5 +341,14 @@ También se compartieron respuestas JSON y capturas de SQL Shell, VS Code, Thund
 
 La implementación se realizó paso a paso en VS Code y se ejecutaron los comandos en la computadora de trabajo. Se verificaron creación y seed de PostgreSQL, consulta de datos relacionados, conexión desde pg, CRUD mediante Thunder Client, doce tests aprobados y carga de Swagger UI en el navegador.
 
-Este registro describe la participación de IA y las comprobaciones realizadas; la evidencia del deploy público se agrega al completar Railway.
+## API desplegada en Railway
+
+- [URL pública de la API](https://proyectom2-miniblog-production.up.railway.app)
+- [Comprobar conexión: /health](https://proyectom2-miniblog-production.up.railway.app/health)
+- [Documentación Swagger](https://proyectom2-miniblog-production.up.railway.app/docs)
+- [Registro del despliegue y pruebas](../Documentación/registro-deploy.md)
+
+Despliegue verificado el 7 de octubre de 2026.
+Se comprobaron conexión, lectura de autores y publicaciones,
+Swagger y creación, consulta y eliminación de un autor temporal.
 
